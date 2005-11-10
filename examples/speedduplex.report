@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+#
+#
+#
+use  IOS;
+$username = "";
+$password = "";
+@hosts = qw(	switch1
+		switch2
+		routerwithethernets1
+		switch3
+		);
+foreach $host ( @hosts )  {
+	my $conn = Net::Telnet::Cisco::IOS->new(HOST => $host);
+	$conn->login(   Name => $username,
+			Password => $password );
+	@ints = $conn->listInts();
+	foreach $int ( @ints )  {
+		$int =~ s/\s+$//g;
+		if ( $int =~ /Ethernet/ )  {
+			%state = $conn->getIntState( $int );
+			$speed = $conn->getEthSpeed( $int );
+			$duplex = $conn->getEthDuplex( $int );
+			if ( $state{'lineprotocol'} =~ /up/ )  {
+				if ( $speed eq "10" || $duplex eq "half" )  {
+					@mac = $conn->getIntCAM( $int );
+					print "$host,$int,$speed,$duplex,@mac\n";
+				}
+			}
+		}
+	}	
+
+	$conn->close;
+}

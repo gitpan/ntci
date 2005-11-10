@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+#
+#
+#
+use  IOS;
+$username = "";
+$password = "";
+@hosts = qw(    switch1
+		router1
+		switch2
+		router2
+		);
+foreach $host ( @hosts )  {
+	my $conn = Net::Telnet::Cisco::IOS->new(HOST => $host);
+	$conn->login(   Name => $username,
+			Password => $password);
+	@output = $conn->getConfig();
+	$outfile = ">" . $host . "-confg";
+	open ( OUTFILE, $outfile );
+	print "Writing $host to file\n";
+	print ( OUTFILE @output );
+	close OUTFILE;
+	$conn->close;
+}
